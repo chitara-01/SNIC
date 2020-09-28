@@ -5,21 +5,16 @@ pixel
 initializeCentroid
 calculateDistance
 """
-u
 class element:
-    """ variables x,c,k,d """
-    #def _init_(self,x,c):
-        
-class pixel:
-    """variables x,c
-    x =[X,Y]
-    c = [r,g,b]
+    """ key: distance
+        val: [x(X,Y), c(l,a,b), k]
     """
+    def __init__(self,key,val):
+        self.key = key
+        self.val = val
     
-class priorityQueue:
-    """def _init_(self):
-        return empty pq"""
-        
+    def __lt__(self, other):
+        return self.key < other.key        
         
 def initializeCentroid(image_size, image):
     """output list of centroids(pixel)"""
