@@ -1,5 +1,6 @@
 import numpy as np
-
+import math
+from numpy import linalg as LA
 """element
 pixel
 initializeCentroid
@@ -21,6 +22,11 @@ def initializeCentroid(image_size, image):
     
 def calculateDistance(curr_pixel, centroid_pixel):
     """distance between two pixels"""
+    s = math.sqrt(num_of_pixels/num_of_clusters)
+    m = 10
+    dist_norm = LA.norm(curr_pixel.x - centroid_pixel.x)
+    color_norm = LA.norm(curr_pixel.c - centroid_pixel.c)
+    return math.sqrt(((dist_norm**2)/s) + ((color_norm**2)/m))
     
 def snic(image,rows,cols,num_of_clusters):
     """ initialize centroids"""
