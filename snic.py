@@ -1,10 +1,11 @@
 import numpy as np
 import math
 from numpy import linalg as LA
-"""element
-pixel
-initializeCentroid
-calculateDistance
+"""
+initializeCentroid(Khobragade)
+updateDistance(Khobragade)
+neighbours
+call snic
 """
 class element:
     """ key: distance
@@ -29,24 +30,24 @@ def calculateDistance(curr_pixel, centroid_pixel):
     return math.sqrt(((dist_norm**2)/s) + ((color_norm**2)/m))
     
 def snic(image,rows,cols,num_of_clusters):
-    """ initialize centroids"""
+    """ initialize centroids; C = [(x1,y1),...]"""
     C = initializeCentroid(image_size, image)
     
     """ initialize labels as 0"""
-    labels = (rows,cols)
-    np.zeros(labels)
+    labels = np.zeros((rows,cols))
     
     """create priority queue"""
-    pq = createPq()
+    pq = []
+    heapq.heapify(pq) 
     
     """push each centroid into pque"""
     for k in range(num_of_clusters):
         e = element(C[k].x,C[k].c)
-        pq.push(e)
+        heapq.heappush(pq,e) 
         
     """find label for each pixel"""
-    while pq.empty()==False:
-        curr_ele = pq.pop()
+    while len(pq) != 0:
+        curr_ele = heapq.heappop(pq)
         x = curr_ele.x
         K = curr_ele.k
         
@@ -56,17 +57,19 @@ def snic(image,rows,cols,num_of_clusters):
             """update centroid"""
             updateDistance(curr_ele)
             
-            """retrieve neightbours"""
-            nbh,num = _neighbours(curr_ele)
+            """retrieve neightbours' coordinates; nbh = [(x1,y1),...]"""
+            nbh = _neighbours(curr_ele)
             
-            for i in range(num):
-                n = nbh[i]
-                e = element(n.x,n.c)
-                e.k = K
-                e.d = calculateDistance(n,C[K])
+            for n in nbh:
+                pos = n
+                color = image[pos[0]][pos[1]]
                 
-                if label[n.X][n.Y]==0:
-                    pq.push(e)
+                e = element(pos,color)
+                e.k = K
+                e.d = calculateDistance(n,C[K],image)
+                
+                if label[pos[0]][pos[1]] == 0:
+                    heapq.heappush(pq,e)
             
     
     """output lables"""
@@ -74,4 +77,6 @@ def snic(image,rows,cols,num_of_clusters):
     
 """call snic()"""
 k = 100
+rows = 
+cols = 
 labels = snic(image,rows,cols,k)
