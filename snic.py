@@ -1,6 +1,8 @@
 import numpy as np
-import math
 from numpy import linalg as LA
+from math import sqrt
+from itertools import chain
+
 """
 initializeCentroid(Khobragade)
 updateDistance(Khobragade)
@@ -20,10 +22,31 @@ class element:
         
 def initializeCentroid(image_size, image):
     """output list of centroids(pixel)"""
+    """image_size = image.shape"""
+
+    compactness = 10
+    num_of_clusters = 100
+    image_size_y = image_size[0] #321
+    image_size_x = image_size[1]  #481
+    #print(image_size_x)
+    #print(image_size_y)
+
+
+# compute grid size
+    num_sqr = sqrt(num_of_clusters)
+    full_step = [image_size_x/num_sqr, image_size_y/num_sqr]
+    half_step = [full_step[0]/2.0, full_step[1]/2.0]
+    matrix = [[[
+        int(half_step[0] + x * full_step[0]),
+            int(half_step[1] + y * full_step[1])
+        ] for x in range(int(num_sqr))] for y in range(int(num_sqr))]
+    centroids = list(chain.from_iterable(matrix))
+    
+    return centroids
     
 def calculateDistance(curr_pixel, centroid_pixel):
     """distance between two pixels"""
-    s = math.sqrt(num_of_pixels/num_of_clusters)
+    s = sqrt(num_of_pixels/num_of_clusters)
     m = 10
     dist_norm = LA.norm(curr_pixel.x - centroid_pixel.x)
     color_norm = LA.norm(curr_pixel.c - centroid_pixel.c)
