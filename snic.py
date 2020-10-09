@@ -18,8 +18,28 @@ class element:
         self.val = val
     
     def __lt__(self, other):
-        return self.key < other.key        
-        
+        return self.key < other.key   
+
+def neighbours(curr_pos, image_size):
+    nbh = []
+
+    x = curr_pos[0]
+    y = curr_pos[1]
+
+    if x-1 >= 0:
+        nbh.append([x-1, y])
+
+    if y-1 >= 0:
+        nbh.append([x, y-1])
+
+    if x+1 < image_size[1]:
+        nbh.append([x+1, y])
+
+    if y+1 < image_size[0]:
+        nbh.append([x, y+1])
+
+    return nbh
+    
 def initializeCentroid(image_size, image):
     """output list of centroids(pixel)"""
     """image_size = image.shape"""
