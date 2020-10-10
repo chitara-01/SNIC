@@ -1,4 +1,5 @@
 import numpy as np
+import heapq
 import cv2
 
 from numpy import linalg as LA
@@ -76,7 +77,7 @@ def calculateDistance(curr_pixel, centroid_pixel):
     
 def snic(image,rows,cols,num_of_clusters):
     """ initialize centroids; C = [(x1,y1),...]"""
-    C = initializeCentroid(image_size, image)
+    C = initializeCentroid(image.shape, image)
     
     """ initialize labels as 0"""
     labels = np.zeros((rows,cols))
@@ -96,14 +97,14 @@ def snic(image,rows,cols,num_of_clusters):
         x = curr_ele.x
         K = curr_ele.k
         
-        if label[x.X][x.Y]==0:
-            label[x.X][x.Y] = K
+        if labels[x.X][x.Y]==0:
+            labels[x.X][x.Y] = K
             
             """update centroid"""
             updateDistance(curr_ele)
             
             """retrieve neightbours' coordinates; nbh = [(x1,y1),...]"""
-            nbh = _neighbours(curr_ele)
+            nbh = neighbours(curr_ele)
             
             for n in nbh:
                 pos = n
@@ -113,13 +114,13 @@ def snic(image,rows,cols,num_of_clusters):
                 e.k = K
                 e.d = calculateDistance(n,C[K],image)
                 
-                if label[pos[0]][pos[1]] == 0:
+                if labels[pos[0]][pos[1]] == 0:
                     heapq.heappush(pq,e)
             
     
     """output lables"""
     return labels
-     
+    
 """call snic()"""
 im = cv2.imread('C:/Users/muska/OneDrive/Desktop/Trimester 1/btp/orchid.jpg')
 #print(im.shape)
