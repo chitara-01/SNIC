@@ -123,9 +123,8 @@ def snic(image,rows,cols,num_of_clusters):
     
 """call snic()"""
 im = cv2.imread('C:/Users/muska/OneDrive/Desktop/Trimester 1/btp/orchid.jpg')
-#print(im.shape)
-
-k = 100
+#plt.imshow(im)
+print(im.shape)
 
 rows = im.shape[0]
 #print("rows: ",rows)
@@ -133,4 +132,13 @@ rows = im.shape[0]
 cols = im.shape[1]
 #print("cols: ",cols)
 
-labels = snic(im,rows,cols,k)
+num_of_pixels = rows*cols
+
+num_of_segments = 100
+compactness = 0.01
+
+labels, centroids = snic(im,compactness,num_of_segments)
+
+fig = plt.figure("Segmented output with %d segments " % len(centroids))
+plt.imshow(mark_boundaries(im, np.array(labels), color=(1, 1, 1)))
+plt.show()
