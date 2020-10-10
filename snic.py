@@ -1,4 +1,6 @@
 import numpy as np
+import cv2
+
 from numpy import linalg as LA
 from math import sqrt
 from itertools import chain
