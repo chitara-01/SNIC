@@ -117,9 +117,17 @@ def snic(image,rows,cols,num_of_clusters):
     
     """output lables"""
     return labels
-    
+     
 """call snic()"""
+im = cv2.imread('C:/Users/muska/OneDrive/Desktop/Trimester 1/btp/orchid.jpg')
+#print(im.shape)
+
 k = 100
-rows = 
-cols = 
-labels = snic(image,rows,cols,k)
+
+rows = im.shape[0]
+#print("rows: ",rows)
+
+cols = im.shape[1]
+#print("cols: ",cols)
+
+labels = snic(im,rows,cols,k)
