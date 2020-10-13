@@ -44,22 +44,21 @@ def neighbours(curr_pos, image_size):
 
     return nbh
     
-def initializeCentroid(image_size, image):
+def initializeCentroid(image_size, num_of_clusters):
     """output list of centroids(pixel)"""
     """image_size = image.shape"""
 
-    compactness = 10
-    num_of_clusters = 100
     image_size_y = image_size[0] #321
     image_size_x = image_size[1]  #481
     #print(image_size_x)
     #print(image_size_y)
 
-
     # compute grid size
     num_sqr = sqrt(num_of_clusters)
+    
     full_step = [image_size_x/num_sqr, image_size_y/num_sqr]
     half_step = [full_step[0]/2.0, full_step[1]/2.0]
+    
     matrix = [[[
         int(half_step[0] + x * full_step[0]),
             int(half_step[1] + y * full_step[1])
@@ -82,8 +81,10 @@ def snic(image, compactness, num_of_clusters):
     
     num_of_pixels = rows*cols
     
-    """ initialize centroids; C = [(x1,y1),...] ---> C = [(pos, avg color, num_pixels), ...]"""
-    C = initializeCentroid(image.shape, image)
+    """ initialize centroids; C = [(x1,y1),...] ---> centroids = [(pos, avg color, num_pixels), ...]"""
+    C = initializeCentroid(image.shape, num_of_clusters)
+    
+    """ centroids = [[0,0,0]] initially there are 0 pixels"""
     centroids = [[pos, im[pos[1]][pos[0]], 0] for pos in C]
     
     """ initialize labels as 0"""
@@ -95,7 +96,8 @@ def snic(image, compactness, num_of_clusters):
     
     """push each centroid into pque"""
     for k in range(num_of_clusters):
-        e = element(C[k].x,C[k].c)
+        centroid_val = [C[k], image[C[k][0]][C[k][1]], k+1]
+        e = element(0,centroid_val)
         heapq.heappush(pq,e) 
         
     """find label for each pixel"""
@@ -108,7 +110,6 @@ def snic(image, compactness, num_of_clusters):
             labels[x.X][x.Y] = K
             
             """update centroid"""
-            updateDistance(curr_ele)
             centroid = centroids[K]
             num = centroid[2]+1
             weight = 1/num
@@ -131,9 +132,10 @@ def snic(image, compactness, num_of_clusters):
                 pos = n
                 color = image[pos[0]][pos[1]]
                 
-                e = element(pos,color)
-                e.k = K
-                e.d = calculateDistance(n,C[K],rows*cols,k)
+                value = [pos, color, k]
+                key = calculateDistance(n,C[K],rows*cols,k)
+                
+                e = element(key, value)
                 
                 if labels[pos[0]][pos[1]] == 0:
                     heapq.heappush(pq,e)
