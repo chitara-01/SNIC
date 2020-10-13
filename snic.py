@@ -74,11 +74,13 @@ def calculateDistance(curr_pixel, centroid_pixel):
     dist_norm = LA.norm(curr_pixel.x - centroid_pixel.x)
     color_norm = LA.norm(curr_pixel.c - centroid_pixel.c)
     return math.sqrt(((dist_norm**2)/s) + ((color_norm**2)/m))
+
+def updateDistance(curr_ele):
     
 def snic(image,rows,cols,num_of_clusters):
     """ initialize centroids; C = [(x1,y1),...]"""
     C = initializeCentroid(image.shape, image)
-    
+    centroids = [[pos, im[pos[1]][pos[0]], 0] for pos in C]
     """ initialize labels as 0"""
     labels = np.zeros((rows,cols))
     
@@ -101,8 +103,20 @@ def snic(image,rows,cols,num_of_clusters):
             labels[x.X][x.Y] = K
             
             """update centroid"""
-            updateDistance(curr_ele)
+            centroid = centroids[K]
+            num = centroid[2]+1
+            weight = 1/num
+            centroid[0] = [
+                           (centroid[0][0]*(1-weight)) + (x[0]*weight),
+                           (centroid[0][1]*(1-weight)) + (x[1]*weight)
+                           ]
             
+            centroid[1] = [
+                            (centroid[1][0] * (1 - weight)) + (curr_ele.c[0] * weight),
+                            (centroid[1][1] * (1 - weight)) + (curr_ele.c[1] * weight),
+                            (centroid[1][2] * (1 - weight)) + (curr_ele.c[2] * weight)]
+            centroid[2] = num
+
             """retrieve neightbours' coordinates; nbh = [(x1,y1),...]"""
             nbh = neighbours(curr_ele)
             
