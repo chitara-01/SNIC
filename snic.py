@@ -2,6 +2,7 @@ import numpy as np
 import heapq
 import cv2
 
+
 import matplotlib.pyplot as plt
 from numpy import linalg as LA
 from math import sqrt
@@ -79,8 +80,8 @@ def calculateDistance(pos1, c1, pos2, c2, num_of_pixels, num_of_clusters):
     
 def snic(image, compactness, num_of_clusters):
     print("Starting snic..")
-    rows = im.shape[0]
-    cols = im.shape[1]
+    rows = image.shape[0]
+    cols = image.shape[1]
     image_size = [rows,cols]
     
     num_of_pixels = rows*cols
@@ -95,7 +96,9 @@ def snic(image, compactness, num_of_clusters):
     print("Last centroid is (x,y): ", C[99][0], C[99][1])
     
     """ centroids = [[0,0,0]] initially there are 0 pixels"""
-    centroids = [[pos, im[pos[0]][pos[1]], 0] for pos in C]
+    i_pos = np.zeros(2)
+    c_pos = np.zeros(3)
+    centroids = [[i_pos, c_pos, 0] for i in range(len(C))]
     
     """ initialize labels as 0"""
     labels = np.zeros((rows,cols))
@@ -107,6 +110,9 @@ def snic(image, compactness, num_of_clusters):
     """push each centroid into pque"""
     for k in range(num_of_clusters):
         centroid_val = [C[k], image[C[k][0]][C[k][1]], k+1]
+        #print("centroid pos", C[k][0], C[k][1])
+        #print("centroid color", C[k][0], C[k][1])
+        #print("centroid number", centroid_val[2])
         e = element(0,centroid_val)
         heapq.heappush(pq,e) 
         
@@ -116,13 +122,14 @@ def snic(image, compactness, num_of_clusters):
         x = curr_ele.val[0]
         c = curr_ele.val[1]
         K = curr_ele.val[2]
-        
+        print("cluster", K)
         if labels[x[0]][x[1]] == 0:
             labels[x[0]][x[1]] = K
             
             """update centroid"""
             centroid = centroids[K-1]
             num = centroid[2]+1
+            #print("centroid[2]", centroid[2], K)
             weight = 1/num
             centroid[0] = [
                            (centroid[0][0]*(1-weight)) + (x[0]*weight),
@@ -134,7 +141,8 @@ def snic(image, compactness, num_of_clusters):
                             (centroid[1][1] * (1 - weight)) + (c[1] * weight),
                             (centroid[1][2] * (1 - weight)) + (c[2] * weight)]
             centroid[2] = num
-
+            centroids[K-1] = centroid
+            #print(centroids[K-1])
             
             """retrieve neightbours' coordinates; nbh = [(x1,y1),...]"""
             nbh = neighbours(x, image_size)
@@ -156,8 +164,8 @@ def snic(image, compactness, num_of_clusters):
     return labels, centroids
     
 """call snic()"""
-im = cv2.imread('C:/Users/muska/OneDrive/Desktop/Trimester 1/btp/orchid.jpg')
-#plt.imshow(im)
+im= cv2.imread('C:/Users/muska/OneDrive/Desktop/Trimester 1/btp/orchid.jpg')
+plt.imshow(im)
 print(im.shape)
 
 rows = im.shape[0]
@@ -169,7 +177,7 @@ cols = im.shape[1]
 num_of_pixels = rows*cols
 
 num_of_segments = 100
-compactness = 0.01
+compactness = 10
 
 labels, centroids = snic(im,compactness,num_of_segments)
 
