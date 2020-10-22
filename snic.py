@@ -101,7 +101,7 @@ def snic(image, compactness, num_of_clusters):
     centroids = [[i_pos, c_pos, 0] for i in range(len(C))]
     
     """ initialize labels as 0"""
-    labels = np.zeros((rows,cols))
+    labels = np.zeros((rows,cols), dtype = int)
     
     """create priority queue"""
     pq = []
@@ -182,12 +182,12 @@ compactness = 10
 labels, centroids = snic(im,compactness,num_of_segments)
 
 print("Shape of labels: ", labels.shape)
-
+"""
 print("First 10 distinct labels are: ")
 for l in range(10):
     i = l*40 + 20
     print("label no. ", i, 0 ," is: ", labels[i][0])
-
+"""
 fig = plt.figure("Segmented output with %d segments " % len(centroids))
 plt.imshow(mark_boundaries(im, labels, color=(1, 1, 1)))
 plt.show()
