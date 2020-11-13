@@ -1,13 +1,23 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Wed Oct 14 20:02:10 2020
+
+@author: HP
+"""
+
 import numpy as np
 import heapq
-import cv2
-
+from PIL import Image
+import os
 
 import matplotlib.pyplot as plt
 from numpy import linalg as LA
 from math import sqrt
 from itertools import chain
-from skimage.segmentation import mark_boundaries
+from skimage.segmentation import mark_boundaries, find_boundaries
+
+os.chdir("C:/Users/HP/Downloads")
+
 
 """
 initializeCentroid change
@@ -57,6 +67,12 @@ def initializeCentroid(image_size, num_of_clusters):
     # compute grid size
     num_sqr = sqrt(num_of_clusters)
     
+    #image_ratio = image_size_x / image_size_y
+    
+
+    #grid_size = [int(max(1.0, num_sqr * image_ratio) + 1), int(max(1.0, num_sqr / image_ratio) + 1)]
+
+    
     full_step = [image_size_y/num_sqr, image_size_x/num_sqr]
     half_step = [full_step[0]/2.0, full_step[1]/2.0]
     
@@ -71,7 +87,7 @@ def initializeCentroid(image_size, num_of_clusters):
 def calculateDistance(pos1, c1, pos2, c2, num_of_pixels, num_of_clusters):
     """distance between two pixels"""
     s = sqrt(num_of_pixels/num_of_clusters)
-    m = 10
+    m = 5
     
     dist_norm = LA.norm(np.array(pos1) - np.array(pos2))
     color_norm = LA.norm(np.array(c1) - np.array(c2))
@@ -80,8 +96,8 @@ def calculateDistance(pos1, c1, pos2, c2, num_of_pixels, num_of_clusters):
     
 def snic(image, compactness, num_of_clusters):
     print("Starting snic..")
-    rows = image.shape[0]
-    cols = image.shape[1]
+    rows = im.shape[0]
+    cols = im.shape[1]
     image_size = [rows,cols]
     
     num_of_pixels = rows*cols
@@ -90,15 +106,20 @@ def snic(image, compactness, num_of_clusters):
     print("pixels: ",num_of_pixels)
     
     """ initialize centroids; C = [(x1,y1),...] ---> centroids = [(pos, avg color, num_pixels), ...]"""
-    C = initializeCentroid(image.shape, num_of_clusters)
+    #C = initializeCentroid(image.shape, num_of_clusters)
+    
+    indices_rows = np.random.randint(0,rows,num_of_clusters)
+    indices_cols = np.random.randint(0,cols,num_of_clusters)
+    C = []
+    for (i,j) in zip(indices_rows,indices_cols):
+            C.append([i,j])
+    
     print("number of centroids: ", len(C))
-    print("First centroid is (x,y): ", C[0][0], C[0][1])
-    print("Last centroid is (x,y): ", C[99][0], C[99][1])
+    #print("First centroid is (x,y): ", C[0][0], C[0][1])
+    #print("Last centroid is (x,y): ", C[6][0], C[6][1])
     
     """ centroids = [[0,0,0]] initially there are 0 pixels"""
-    i_pos = np.zeros(2)
-    c_pos = np.zeros(3)
-    centroids = [[i_pos, c_pos, 0] for i in range(len(C))]
+    centroids = [[pos, im[pos[0]][pos[1]], 0] for pos in C]
     
     """ initialize labels as 0"""
     labels = np.zeros((rows,cols), dtype = int)
@@ -110,9 +131,6 @@ def snic(image, compactness, num_of_clusters):
     """push each centroid into pque"""
     for k in range(num_of_clusters):
         centroid_val = [C[k], image[C[k][0]][C[k][1]], k+1]
-        #print("centroid pos", C[k][0], C[k][1])
-        #print("centroid color", C[k][0], C[k][1])
-        #print("centroid number", centroid_val[2])
         e = element(0,centroid_val)
         heapq.heappush(pq,e) 
         
@@ -122,14 +140,13 @@ def snic(image, compactness, num_of_clusters):
         x = curr_ele.val[0]
         c = curr_ele.val[1]
         K = curr_ele.val[2]
-        print("cluster", K)
+        
         if labels[x[0]][x[1]] == 0:
             labels[x[0]][x[1]] = K
             
             """update centroid"""
             centroid = centroids[K-1]
             num = centroid[2]+1
-            #print("centroid[2]", centroid[2], K)
             weight = 1/num
             centroid[0] = [
                            (centroid[0][0]*(1-weight)) + (x[0]*weight),
@@ -141,8 +158,7 @@ def snic(image, compactness, num_of_clusters):
                             (centroid[1][1] * (1 - weight)) + (c[1] * weight),
                             (centroid[1][2] * (1 - weight)) + (c[2] * weight)]
             centroid[2] = num
-            centroids[K-1] = centroid
-            #print(centroids[K-1])
+
             
             """retrieve neightbours' coordinates; nbh = [(x1,y1),...]"""
             nbh = neighbours(x, image_size)
@@ -151,7 +167,7 @@ def snic(image, compactness, num_of_clusters):
                 pos = n
                 color = image[pos[0]][pos[1]]
                 
-                value = [pos, color, k]
+                value = [pos, color, K]
                 key = calculateDistance(n, image[n[0]][n[1]], C[K-1], image[C[K-1][0]][C[K-1][1]], num_of_pixels, k)
                 
                 e = element(key, value)
@@ -164,7 +180,9 @@ def snic(image, compactness, num_of_clusters):
     return labels, centroids
     
 """call snic()"""
-im= cv2.imread('C:/Users/muska/OneDrive/Desktop/Trimester 1/btp/orchid.jpg')
+image = Image.open('253036.jpg')
+im = np.array(image)
+#im = cv2.imread('C:/Users/muska/OneDrive/Desktop/Trimester 1/btp/orchid.jpg')
 plt.imshow(im)
 print(im.shape)
 
@@ -176,18 +194,67 @@ cols = im.shape[1]
 
 num_of_pixels = rows*cols
 
-num_of_segments = 100
-compactness = 10
+num_of_segments = 50
+compactness = 0.05
 
 labels, centroids = snic(im,compactness,num_of_segments)
+#print(labels)
 
 print("Shape of labels: ", labels.shape)
-"""
 print("First 10 distinct labels are: ")
+"""
 for l in range(10):
     i = l*40 + 20
     print("label no. ", i, 0 ," is: ", labels[i][0])
 """
-fig = plt.figure("Segmented output with %d segments " % len(centroids))
+fig = plt.figure()
 plt.imshow(mark_boundaries(im, labels, color=(1, 1, 1)))
 plt.show()
+bound = find_boundaries(labels, mode='thick').astype(np.uint8)
+
+
+file = open("253036.seg","r")
+gt = file.readlines()
+print(gt[11])
+print(len(gt))
+gt_labels = np.zeros((rows,cols), dtype = int)
+
+for i in range(11,len(gt)):
+    temp = [int(i) for i in gt[i].split()]
+    label_no =  temp[0]
+    row_no = temp[1]
+    col_s = temp[2]
+    col_e = temp[3]
+    for j in range(col_s,col_e+1):
+        gt_labels[row_no][j]=label_no
+    
+    
+fig = plt.figure()
+plt.imshow(mark_boundaries(im, gt_labels, color=(1, 1, 1)))
+plt.show()
+gt_bound = find_boundaries(gt_labels, mode='thick').astype(np.uint8)
+
+FP=0
+TP=0
+total = 0
+for i in range(rows):
+    for j in range(cols):
+        gt_flag = gt_bound[i][j]
+        total = total + gt_flag
+        flag = 0
+        arr1 = [-1,-1,-1, 0,0,0,1,1,1]
+        arr2 = [-1, 0, 1, -1, 0, 1,-1,0,1]
+        for (x,y) in zip(arr1,arr2):
+            if (i+x<rows and i+x>=0 and j+y<cols and j+y>=0) and bound[i+x][j+y] == 1:
+                flag = 1
+                break
+        TP = TP + gt_flag*flag
+        FP = FP + (1-gt_flag*flag)
+    
+Recall = TP/total
+print(Recall," ")
+Precision = TP/(TP+FP)
+print(Precision)
+
+
+
